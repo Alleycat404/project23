@@ -35,24 +35,41 @@ class RNN_VAE(pl.LightningModule):
         self.fc4 = nn.Linear(z_dim, h_dim)
         self.fc5 = nn.Linear(h_dim, input_dim)
 
+        # 卷积模块
+        self.conv_layer1 = nn.Sequential(
+            nn.Conv2d(512, 32, 5, stride=1, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(32, 32, 5, stride=1, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(32, 32, 5, stride=1, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
         # RNN模块
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1, bias=False)
         self.gdn1 = GDN(64)
 
-        self.rnn_in = nn.LSTM(64, 512, 3, batch_first=True)
+        self.rnn_in = nn.LSTM(64, 512, 1, batch_first=True)
 
         self.conv2 = nn.Conv2d(512, 32, kernel_size=3, stride=2, padding=1, bias=False)
         self.conv2_1 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, bias=False)
 
         self.conv3 = nn.Conv2d(32, self.input_dim, kernel_size=1)
 
-        self.rnn_out = nn.LSTM(32, 512, 3, batch_first=True)
+        self.rnn_out = nn.LSTM(32, 512, 1, batch_first=True)
 
         self.conv4 = nn.Conv2d(32, 512, kernel_size=1, stride=1, padding=0, bias=False)
 
         self.conv5 = nn.Conv2d(32, 3, kernel_size=1, stride=1, padding=0, bias=False)
         self.igdn1 = GDN(512, inverse=True)
         self.root = root
+        self.img_size = 64
 
     def train_dataloader(self):
         train_dataset = Flickr(self.root, "train")
@@ -73,8 +90,8 @@ class RNN_VAE(pl.LightningModule):
         return test_loader
 
     def predict_dataloader(self):
-        predict_dataloader = Flickr(self.root, "test")
-        predict_dataloader = DataLoader(predict_dataloader, batch_size=2, shuffle=False, num_workers=0)
+        predict_dataset = Flickr(self.root, "test")
+        predict_dataloader = DataLoader(predict_dataset, batch_size=2, shuffle=False, num_workers=0)
 
         return predict_dataloader
 
@@ -84,40 +101,35 @@ class RNN_VAE(pl.LightningModule):
         :param x: the input of our training module [b, batch_size, 1, 28, 28]
         :return: the result of our training module
         """
+        batch_size = x.shape[0]  # 每一批含有的样本的个数
+
         x = self.gdn1(self.conv1(x))  # (1, 3, 64, 64) -> (1, 64, 32, 32)
 
-        batch_size = x.shape[0]  # 每一批含有的样本的个数
         # x = x.view(batch_size, -1)  # 一行代表一个样本
-        x = x.reshape(batch_size, 64, 1024).permute(0, 2, 1)
-
+        x = x.reshape(batch_size, 64, (self.img_size//2)**2).permute(0, 2, 1)
         x, _ = self.rnn_in(x)  # (b, 1024, 512)
-        x = x.permute(0, 2, 1).reshape(batch_size, 512, 32, 32)  # (b, 512, 32, 32)
+        x = x.permute(0, 2, 1).reshape(batch_size, 512, self.img_size//2, self.img_size//2)  # (b, 512, 32, 32)
 
-        x = self.conv2(x)  # x.shape(1, 32, 16, 16)
-        x = self.conv2_1(x)  # x.shape(b, 32, 8, 8)
-        x = self.conv2_1(x)  # x.shape(b, 32, 4, 4)
+        x = self.conv_layer1(x)  # x.shape(b, 32, 4, 4)
 
         x = x.view(batch_size, -1)
-
         # encoder
         mu, log_var = self.encode(x)
         # reparameterization trick
         sampled_z = self.reparameterization(mu, log_var)
         # decoder
-        x_hat = self.decode(sampled_z).view(batch_size, 32, 4, 4)
+        x_hat = self.decode(sampled_z).view(batch_size, 32, self.img_size//16, self.img_size//16)
 
         x_hat = self.conv4(x_hat)  # (b, 512, 4, 4)
 
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 128, 8, 8)
-
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 32, 16, 16)
 
-        x_hat = x_hat.reshape(batch_size, 32, 256).permute(0, 2, 1)
+        x_hat = x_hat.reshape(batch_size, 32, (self.img_size//4)**2).permute(0, 2, 1)
         x_hat, _ = self.rnn_out(x_hat)  # (b, 512, 16, 16)
-        x_hat = x_hat.permute(0, 2, 1).reshape(batch_size, 512, 16, 16)
+        x_hat = x_hat.permute(0, 2, 1).reshape(batch_size, 512, self.img_size//4, self.img_size//4)
 
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 128, 32, 32)
-
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 32, 64, 64)
 
         x_hat = self.conv5(x_hat)
@@ -206,9 +218,10 @@ class RNN_VAE(pl.LightningModule):
         for k in range(pred.shape[0]):
             img = pred[k, :]
             img = img.mul(255).byte()
-            img = img.cpu().numpy().squeeze(0).transpose((1, 2, 0))
+            img = img.cpu().numpy().transpose((1, 2, 0))
 
             cv2.imshow('{}th image'.format(k), img)
+            cv2.waitKey(0)
 
         loss = self.loss_fn(pred, batch)
         return pred, loss

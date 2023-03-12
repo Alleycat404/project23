@@ -20,7 +20,7 @@ class Flickr(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         filename = self.filenames[idx]
-        image = cv2.resize(cv2.imread(os.path.join(self.root, self.mode, filename)), (64, 64))
+        image = cv2.resize(cv2.imread(os.path.join(self.root, self.mode, filename)), (512, 512))
 
         if self.transform is not None:
             image = self.transform(image)
