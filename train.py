@@ -6,7 +6,7 @@ from Flickr import Flickr
 from pytorch_lightning.callbacks import RichProgressBar
 # from prog_bar import GlobalProgressBar
 
-root = "E:/datasets/flickr"
+root = "flickr"
 
 model = RNN_VAE(root)
 
