@@ -6,7 +6,7 @@ from Flickr import Flickr
 from pytorch_lightning.callbacks import RichProgressBar
 # from prog_bar import GlobalProgressBar
 
-root = "flickr"
+root = "E:/datasets/flickr"
 
 model = RNN_VAE(root)
 
@@ -25,5 +25,3 @@ trainer = pl.Trainer(callbacks=callbacks, enable_progress_bar=True, fast_dev_run
 trainer.fit(model)
 
 # print(checkpoint_callback.best_model_path)
-
-

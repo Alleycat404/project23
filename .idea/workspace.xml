@@ -7,8 +7,7 @@
     <list default="true" id="28da6c82-e5ff-47c4-9136-59825ca1a57e" name="变更" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Flickr.py" beforeDir="false" afterPath="$PROJECT_DIR$/Flickr.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +60,7 @@
       <recent name="E:\RNN+VAE\project23\model" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.model">
+  <component name="RunManager" selected="Python.train">
     <configuration name="model" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="project23" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -168,17 +167,17 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.plot" />
-      <item itemvalue="Python.model1" />
       <item itemvalue="Python.model1 (1)" />
+      <item itemvalue="Python.model1" />
       <item itemvalue="Python.model" />
+      <item itemvalue="Python.plot" />
       <item itemvalue="Python.train" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.train" />
         <item itemvalue="Python.model" />
         <item itemvalue="Python.plot" />
-        <item itemvalue="Python.train" />
         <item itemvalue="Python.model1 (1)" />
         <item itemvalue="Python.model1" />
       </list>
