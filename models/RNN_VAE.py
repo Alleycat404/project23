@@ -2,6 +2,7 @@ import math
 
 import cv2
 import numpy
+import numpy as np
 from torch import nn
 import torch
 import torch.nn.functional as F
@@ -224,15 +225,19 @@ class RNN_VAE(pl.LightningModule):
         return {'test_loss': avg_loss}
 
     def predict_step(self, batch, idx, dataloader_idx=0):
-        # take average of `self.mc_iteration` iterations
         pred, _, _ = self.forward(batch)
 
         for k in range(pred.shape[0]):
             img = pred[k, :]
             img = img.mul(255).byte()
-            img = img.cpu().numpy().transpose((1, 2, 0))
+            img = img.cpu().numpy().transpose(1, 2, 0)
+            origin = batch[k, :]
+            origin = origin.mul(255).byte()
+            origin = origin.cpu().numpy().transpose(1, 2, 0)
 
-            cv2.imshow('{}th image'.format(k), img)
+            con_img = np.concatenate([origin, img], axis=1)
+
+            cv2.imshow('{}th image'.format(k), con_img)
             cv2.waitKey(0)
 
         loss = self.loss_fn(pred, batch)

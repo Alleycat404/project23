@@ -3,3 +3,5 @@ lightning_logs/
 saved_model/
 ckpt/
 */__pycache__
+
+__pycache__/

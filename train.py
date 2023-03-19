@@ -8,10 +8,10 @@ from Flickr import Flickr
 
 # from prog_bar import GlobalProgressBar
 
-root = "flickr"
+root = "E:/datasets/small_flickr"
 img_size = 64
 
-model = RNN_VAE(root, img_size=img_size)
+model = RNN(root, img_size=img_size)
 
 checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath="ckpt", monitor="val_loss")
 callbacks = [checkpoint_callback]

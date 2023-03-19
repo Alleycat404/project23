@@ -122,25 +122,25 @@ class RNN(pl.LightningModule):
 
     def train_dataloader(self):
         train_dataset = Flickr(self.root, "train")
-        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=0)
+        train_loader = DataLoader(train_dataset, batch_size=self.batchsize, shuffle=True, num_workers=0, drop_last=True)
 
         return train_loader
 
     def val_dataloader(self):
         valid_dataset = Flickr(self.root, "test")
-        valid_loader = DataLoader(valid_dataset, batch_size=2, shuffle=False, num_workers=0)
+        valid_loader = DataLoader(valid_dataset, batch_size=self.batchsize, shuffle=False, num_workers=0, drop_last=True)
 
         return valid_loader
 
     def test_dataloader(self):
         test_dataset = Flickr(self.root, "test")
-        test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=0)
+        test_loader = DataLoader(test_dataset, batch_size=self.batchsize, shuffle=False, num_workers=0, drop_last=True)
 
         return test_loader
 
     def predict_dataloader(self):
         predict_dataset = Flickr(self.root, "test")
-        predict_dataloader = DataLoader(predict_dataset, batch_size=2, shuffle=False, num_workers=0)
+        predict_dataloader = DataLoader(predict_dataset, batch_size=self.batchsize, shuffle=False, num_workers=0, drop_last=True)
 
         return predict_dataloader
 
@@ -236,6 +236,14 @@ class RNN(pl.LightningModule):
     def training_step(self, batch, idx):
         pred = self.forward(batch)
         loss = self.loss_fn(pred, batch)
+
+        self.hidden1 = (self.hidden1[0].detach(), self.hidden1[1].detach())
+        self.hidden2 = (self.hidden2[0].detach(), self.hidden2[1].detach())
+        self.hidden3 = (self.hidden3[0].detach(), self.hidden3[1].detach())
+        self.hidden4 = (self.hidden4[0].detach(), self.hidden4[1].detach())
+        self.hidden5 = (self.hidden5[0].detach(), self.hidden5[1].detach())
+        self.hidden6 = (self.hidden6[0].detach(), self.hidden6[1].detach())
+        self.hidden7 = (self.hidden7[0].detach(), self.hidden7[1].detach())
 
         return {'loss': loss, 'image': pred}
 
