@@ -65,7 +65,7 @@ class GDN(nn.Module):
         unfold = False
         if inputs.dim() == 5:
             unfold = True
-            bs, ch, d, w, h = inputs.size() 
+            bs, ch, d, w, h = inputs.img_size()
             inputs = inputs.view(bs, ch, d*w, h)
 
         _, ch, _, _ = inputs.size()

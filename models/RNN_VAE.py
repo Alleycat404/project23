@@ -15,9 +15,13 @@ import pytorch_lightning as pl
 
 class RNN_VAE(pl.LightningModule):
 
-    def __init__(self, root='E:/datasets/small_flickr', input_dim=512, h_dim=400, z_dim=20):
+    def __init__(self, root='E:/datasets/small_flickr', input_dim=512, h_dim=400, z_dim=20, batchsize=16, img_size=64):
         # 调用父类方法初始化模块的state
         super(RNN_VAE, self).__init__()
+
+        self.root = root
+        self.img_size = img_size
+        self.batchsize = batchsize
 
         self.loss_fn = nn.MSELoss()
         # self.bpp_loss_fn = torch.log(likelihoods).sum() / (-math.log(2) * num_pixels)
@@ -56,6 +60,8 @@ class RNN_VAE(pl.LightningModule):
         self.gdn1 = GDN(64)
 
         self.rnn_in = nn.LSTM(64, 512, 1, batch_first=True)
+        self.h_in = torch.zeros(1, self.batchsize, 512).detach()
+        self.c_in = torch.zeros(1, self.batchsize, 512).detach()
 
         self.conv2 = nn.Conv2d(512, 32, kernel_size=3, stride=2, padding=1, bias=False)
         self.conv2_1 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, bias=False)
@@ -63,23 +69,25 @@ class RNN_VAE(pl.LightningModule):
         self.conv3 = nn.Conv2d(32, self.input_dim, kernel_size=1)
 
         self.rnn_out = nn.LSTM(32, 512, 1, batch_first=True)
+        self.h_out = torch.zeros(1, self.batchsize, 512).detach()
+        self.c_out = torch.zeros(1, self.batchsize, 512).detach()
 
         self.conv4 = nn.Conv2d(32, 512, kernel_size=1, stride=1, padding=0, bias=False)
 
         self.conv5 = nn.Conv2d(32, 3, kernel_size=1, stride=1, padding=0, bias=False)
         self.igdn1 = GDN(512, inverse=True)
-        self.root = root
-        self.img_size = 64
+
+
 
     def train_dataloader(self):
         train_dataset = Flickr(self.root, "train")
-        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=0)
+        train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=0, drop_last=True)
 
         return train_loader
 
     def val_dataloader(self):
         valid_dataset = Flickr(self.root, "test")
-        valid_loader = DataLoader(valid_dataset, batch_size=2, shuffle=False, num_workers=0)
+        valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=0)
 
         return valid_loader
 
@@ -107,7 +115,7 @@ class RNN_VAE(pl.LightningModule):
 
         # x = x.view(batch_size, -1)  # 一行代表一个样本
         x = x.reshape(batch_size, 64, (self.img_size//2)**2).permute(0, 2, 1)
-        x, _ = self.rnn_in(x)  # (b, 1024, 512)
+        x, (self.h_in, self.c_in) = self.rnn_in(x, (self.h_in, self.c_in))  # (b, 1024, 512)
         x = x.permute(0, 2, 1).reshape(batch_size, 512, self.img_size//2, self.img_size//2)  # (b, 512, 32, 32)
 
         x = self.conv_layer1(x)  # x.shape(b, 32, 4, 4)
@@ -126,7 +134,7 @@ class RNN_VAE(pl.LightningModule):
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 32, 16, 16)
 
         x_hat = x_hat.reshape(batch_size, 32, (self.img_size//4)**2).permute(0, 2, 1)
-        x_hat, _ = self.rnn_out(x_hat)  # (b, 512, 16, 16)
+        x_hat, (self.h_out, self.c_out) = self.rnn_out(x_hat, (self.h_out, self.c_out))  # (b, 512, 16, 16)
         x_hat = x_hat.permute(0, 2, 1).reshape(batch_size, 512, self.img_size//4, self.img_size//4)
 
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 128, 32, 32)
@@ -182,6 +190,10 @@ class RNN_VAE(pl.LightningModule):
     def training_step(self, batch, idx):
         pred, _, _ = self.forward(batch)
         loss = self.loss_fn(pred, batch)
+        self.c_in = self.c_in.detach()
+        self.h_in = self.h_in.detach()
+        self.c_out = self.c_out.detach()
+        self.h_out = self.h_out.detach()
 
         return {'loss': loss, 'image': pred}
 
@@ -234,7 +246,7 @@ if __name__ == '__main__':
 
     root = "E:/datasets/flickr"
 
-    x = torch.rand(2, 3, 64, 64)
+    x = torch.rand(16, 3, 64, 64)
     model = RNN_VAE(root)
     out, mu, log_var = model(x)
     print(out.shape)

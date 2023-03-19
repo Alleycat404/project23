@@ -1,26 +1,23 @@
 import pytorch_lightning as pl
+import torch
+from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from model import RNN_VAE
+from models import RNN_VAE, RNN
 from Flickr import Flickr
-from pytorch_lightning.callbacks import RichProgressBar
+
 # from prog_bar import GlobalProgressBar
 
 root = "flickr"
+img_size = 64
 
-model = RNN_VAE(root)
-
-train_dataset = Flickr(root, "train")
-valid_dataset = Flickr(root, "test")
-
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=0)
-valid_loader = DataLoader(valid_dataset, batch_size=2, shuffle=False, num_workers=0)
+model = RNN_VAE(root, img_size=img_size)
 
 checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath="ckpt", monitor="val_loss")
 callbacks = [checkpoint_callback]
 
 trainer = pl.Trainer(callbacks=callbacks, enable_progress_bar=True, fast_dev_run=False,
-                     max_epochs=100, accelerator='auto', check_val_every_n_epoch=2, auto_lr_find=True)
+                     max_epochs=100, accelerator='cpu', check_val_every_n_epoch=2, auto_lr_find=True)
 
 trainer.fit(model)
 

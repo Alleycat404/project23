@@ -2,3 +2,4 @@
 lightning_logs/
 saved_model/
 ckpt/
+*/__pycache__
