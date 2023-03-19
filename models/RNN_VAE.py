@@ -87,19 +87,19 @@ class RNN_VAE(pl.LightningModule):
 
     def val_dataloader(self):
         valid_dataset = Flickr(self.root, "test")
-        valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=0)
+        valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False, num_workers=0, drop_last=True)
 
         return valid_loader
 
     def test_dataloader(self):
         test_dataset = Flickr(self.root, "test")
-        test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False, num_workers=0)
+        test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=0, drop_last=True)
 
         return test_loader
 
     def predict_dataloader(self):
         predict_dataset = Flickr(self.root, "test")
-        predict_dataloader = DataLoader(predict_dataset, batch_size=2, shuffle=False, num_workers=0)
+        predict_dataloader = DataLoader(predict_dataset, batch_size=16, shuffle=False, num_workers=0, drop_last=True)
 
         return predict_dataloader
 
