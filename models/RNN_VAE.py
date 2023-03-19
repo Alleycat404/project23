@@ -60,8 +60,8 @@ class RNN_VAE(pl.LightningModule):
         self.gdn1 = GDN(64)
 
         self.rnn_in = nn.LSTM(64, 512, 1, batch_first=True)
-        self.h_in = torch.zeros(1, self.batchsize, 512).detach()
-        self.c_in = torch.zeros(1, self.batchsize, 512).detach()
+        self.h_in = torch.zeros(1, self.batchsize, 512).cuda()
+        self.c_in = torch.zeros(1, self.batchsize, 512).cuda()
 
         self.conv2 = nn.Conv2d(512, 32, kernel_size=3, stride=2, padding=1, bias=False)
         self.conv2_1 = nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1, bias=False)
@@ -69,8 +69,8 @@ class RNN_VAE(pl.LightningModule):
         self.conv3 = nn.Conv2d(32, self.input_dim, kernel_size=1)
 
         self.rnn_out = nn.LSTM(32, 512, 1, batch_first=True)
-        self.h_out = torch.zeros(1, self.batchsize, 512).detach()
-        self.c_out = torch.zeros(1, self.batchsize, 512).detach()
+        self.h_out = torch.zeros(1, self.batchsize, 512).cuda()
+        self.c_out = torch.zeros(1, self.batchsize, 512).cuda()
 
         self.conv4 = nn.Conv2d(32, 512, kernel_size=1, stride=1, padding=0, bias=False)
 

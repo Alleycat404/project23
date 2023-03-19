@@ -17,7 +17,7 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath="ckpt", monitor="val_
 callbacks = [checkpoint_callback]
 
 trainer = pl.Trainer(callbacks=callbacks, enable_progress_bar=True, fast_dev_run=False,
-                     max_epochs=100, accelerator='cpu', check_val_every_n_epoch=2, auto_lr_find=True)
+                     max_epochs=100, accelerator='gpu', check_val_every_n_epoch=2, auto_lr_find=True)
 
 trainer.fit(model)
 
