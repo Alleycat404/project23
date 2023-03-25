@@ -3,5 +3,6 @@ lightning_logs/
 saved_model/
 ckpt/
 */__pycache__
-
 __pycache__/
+flickr/
+small_flickr/

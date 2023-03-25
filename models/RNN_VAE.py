@@ -218,7 +218,7 @@ class RNN_VAE(pl.LightningModule):
     def test_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
+            loss = self.mse_loss(pred, batch)
 
         return {'test_loss': loss}
 
