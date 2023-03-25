@@ -16,15 +16,17 @@ import pytorch_lightning as pl
 
 class RNN_VAE(pl.LightningModule):
 
-    def __init__(self, root='E:/datasets/small_flickr', input_dim=512, h_dim=400, z_dim=20, batchsize=16, img_size=64):
+    def __init__(self, root='E:/datasets/small_flickr', input_dim=512, h_dim=400, z_dim=20, batchsize=16, img_size=64, L=0.01):
         # 调用父类方法初始化模块的state
         super(RNN_VAE, self).__init__()
 
+        self.L = L
         self.root = root
         self.img_size = img_size
         self.batchsize = batchsize
 
-        self.loss_fn = nn.MSELoss()
+        self.mse_loss = nn.MSELoss()
+        self.KL_loss = nn.KLDivLoss(reduction='batchmean')
         # self.bpp_loss_fn = torch.log(likelihoods).sum() / (-math.log(2) * num_pixels)
 
         self.input_dim = input_dim
@@ -190,7 +192,8 @@ class RNN_VAE(pl.LightningModule):
 
     def training_step(self, batch, idx):
         pred, _, _ = self.forward(batch)
-        loss = self.loss_fn(pred, batch)
+        print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))))
+        loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
         self.c_in = self.c_in.detach()
         self.h_in = self.h_in.detach()
         self.c_out = self.c_out.detach()
@@ -201,7 +204,7 @@ class RNN_VAE(pl.LightningModule):
     def validation_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.loss_fn(pred, batch)
+            loss = self.mse_loss(pred, batch)
 
         return {"val_loss": loss}
 
@@ -215,7 +218,7 @@ class RNN_VAE(pl.LightningModule):
     def test_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.loss_fn(pred, batch)
+            loss = self.mse_loss(pred, batch)
 
         return {'test_loss': loss}
 
@@ -240,7 +243,7 @@ class RNN_VAE(pl.LightningModule):
             cv2.imshow('{}th image'.format(k), con_img)
             cv2.waitKey(0)
 
-        loss = self.loss_fn(pred, batch)
+        loss = self.mse_loss(pred, batch)
         return pred, loss
 
     def configure_optimizers(self):
@@ -252,6 +255,5 @@ if __name__ == '__main__':
     root = "E:/datasets/flickr"
 
     x = torch.rand(16, 3, 64, 64)
-    model = RNN_VAE(root)
-    out, mu, log_var = model(x)
-    print(out.shape)
+    out = RNN_VAE(root).training_step(x, 1)
+    print(out['loss'])
