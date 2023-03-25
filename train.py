@@ -11,7 +11,7 @@ from Flickr import Flickr
 root = "E:/datasets/small_flickr"
 img_size = 64
 
-model = RNN(root, img_size=img_size)
+model = RNN_VAE(root, img_size=img_size, L=0.05)
 
 checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath="ckpt", monitor="val_loss")
 callbacks = [checkpoint_callback]

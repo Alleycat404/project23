@@ -192,7 +192,7 @@ class RNN_VAE(pl.LightningModule):
 
     def training_step(self, batch, idx):
         pred, _, _ = self.forward(batch)
-        print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))))
+        # print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))))
         loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
         self.c_in = self.c_in.detach()
         self.h_in = self.h_in.detach()
@@ -204,7 +204,7 @@ class RNN_VAE(pl.LightningModule):
     def validation_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.mse_loss(pred, batch)
+            loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
 
         return {"val_loss": loss}
 
@@ -218,7 +218,7 @@ class RNN_VAE(pl.LightningModule):
     def test_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.mse_loss(pred, batch)
+            loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
 
         return {'test_loss': loss}
 
@@ -243,7 +243,7 @@ class RNN_VAE(pl.LightningModule):
             cv2.imshow('{}th image'.format(k), con_img)
             cv2.waitKey(0)
 
-        loss = self.mse_loss(pred, batch)
+        loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
         return pred, loss
 
     def configure_optimizers(self):
