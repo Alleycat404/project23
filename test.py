@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 
-from models import RNN_VAE, RNN
+from models import RNN_VAE, RNN, RNN_CNN
 
 
 def inference():
@@ -9,13 +9,13 @@ def inference():
     # trainer.fit(model)
     trainer.predict(model, ckpt_path='ckpt/R-D/L=0.5_epoch=27-step=40656.ckpt')
 
-def test():
-    model = RNN_VAE('flickr')
+def te():
+    model = RNN_CNN('flickr')
     trainer = pl.Trainer(accelerator='auto')
-    trainer.test(model, ckpt_path='ckpt/R-D/L=0.1_epoch=65-step=95832.ckpt')
+    trainer.test(model, ckpt_path='ckpt/epoch=67-step=98736.ckpt')
 
 
 if __name__ == '__main__':
-    test()
+    te()
 
 
