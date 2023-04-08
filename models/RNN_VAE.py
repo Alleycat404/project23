@@ -14,6 +14,7 @@ from module import ConvLSTMCell
 from module import GDN
 from torch.autograd import Variable
 import pytorch_lightning as pl
+from skimage.metrics import structural_similarity
 
 class RNN_VAE(pl.LightningModule):
 
@@ -208,7 +209,7 @@ class RNN_VAE(pl.LightningModule):
     def test_step(self, batch, idx):
         with torch.no_grad():
             pred, _, _ = self.forward(batch)
-            loss = self.mse_loss(pred, batch)
+            loss = structural_similarity(pred, batch)
 
         return {'test_loss': loss}
 
