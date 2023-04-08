@@ -1,8 +1,10 @@
 import math
+import os
 
 import cv2
 import numpy
 import numpy as np
+from skimage.metrics import structural_similarity
 from torch import nn
 import torch
 import torch.nn.functional as F
@@ -264,10 +266,17 @@ class RNN(pl.LightningModule):
 
     def test_step(self, batch, idx):
         with torch.no_grad():
+            losses = []
             pred = self.forward(batch)
-            loss = self.loss_fn(pred, batch)
+            for i in range(pred.shape[0]):
+                loss = structural_similarity(
+                    pred[i].mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy(),
+                    batch[i].mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy(),
+                    channel_axis=2)
+                losses.append(loss)
+            mean_loss = torch.tensor(sum(losses)/len(losses))
 
-        return {'test_loss': loss}
+        return {'test_loss': mean_loss}
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
@@ -276,6 +285,7 @@ class RNN(pl.LightningModule):
 
     def predict_step(self, batch, idx, dataloader_idx=0):
         pred = self.forward(batch)
+        sav_pth = 'predict'
 
         for k in range(pred.shape[0]):
             img = pred[k, :]
@@ -287,8 +297,9 @@ class RNN(pl.LightningModule):
 
             con_img = np.concatenate([origin, img], axis=1)
 
-            cv2.imshow('{}th image'.format(k), con_img)
-            cv2.waitKey(0)
+            # cv2.imshow('{}th image'.format(k), con_img)
+            # cv2.waitKey(0)
+            cv2.imwrite(os.path.join(sav_pth, str(k) + '.jpg'), con_img)
 
         loss = self.loss_fn(pred, batch)
         return pred, loss

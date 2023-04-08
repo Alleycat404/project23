@@ -208,14 +208,21 @@ class RNN_VAE(pl.LightningModule):
 
     def test_step(self, batch, idx):
         with torch.no_grad():
+            losses = []
             pred, _, _ = self.forward(batch)
-            loss = structural_similarity(pred, batch)
+            for i in range(pred.shape[0]):
+                loss = structural_similarity(
+                    pred[i].mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy(),
+                    batch[i].mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy(),
+                    channel_axis=2)
+                losses.append(loss)
+            mean_loss = torch.tensor(sum(losses)/len(losses))
 
-        return {'test_loss': loss}
+        return {'test_loss': mean_loss}
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-        self.log('test_loss', avg_loss, prog_bar=True)
+        self.log('ssim', avg_loss, prog_bar=True)
         return {'test_loss': avg_loss}
 
     def predict_step(self, batch, idx, dataloader_idx=0):
