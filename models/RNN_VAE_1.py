@@ -77,9 +77,28 @@ class RNN_VAE(pl.LightningModule):
         self.register_buffer("h_out", torch.zeros(1, self.batchsize, 512))
         self.register_buffer("c_out", torch.zeros(1, self.batchsize, 512))
 
-        self.conv4 = nn.Conv2d(32, 512, kernel_size=1, stride=1, padding=0, bias=False)
+        # self.conv4 = nn.Conv2d(32, 512, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv_layer2 = nn.Sequential(
+            nn.Conv2d(32, 128, 5, stride=1, padding=2),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 256, 5, stride=1, padding=2),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 512, 5, stride=1, padding=2),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True)
+        )
 
-        self.conv5 = nn.Conv2d(32, 3, kernel_size=1, stride=1, padding=0, bias=False)
+        # self.conv5 = nn.Conv2d(32, 3, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv_layer3 = nn.Sequential(
+            nn.Conv2d(32, 32, 5, stride=1, padding=2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 3, 5, stride=1, padding=2),
+            nn.BatchNorm2d(3),
+            nn.ReLU(inplace=True)
+        )
         self.igdn1 = GDN(512, inverse=True)
 
     def train_dataloader(self):
@@ -130,7 +149,7 @@ class RNN_VAE(pl.LightningModule):
         # decoder
         x_hat = self.decoder(sampled_z).view(batch_size, 32, self.img_size // 16, self.img_size // 16)
 
-        x_hat = self.conv4(x_hat)  # (b, 512, 4, 4)
+        x_hat = self.conv_layer2(x_hat)  # (b, 512, 4, 4)
 
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 128, 8, 8)
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 32, 16, 16)
@@ -142,7 +161,7 @@ class RNN_VAE(pl.LightningModule):
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 128, 32, 32)
         x_hat = F.pixel_shuffle(x_hat, 2)  # (b, 32, 64, 64)
 
-        x_hat = self.conv5(x_hat)
+        x_hat = self.conv_layer3(x_hat)
 
         return x_hat, mu, log_var
 
