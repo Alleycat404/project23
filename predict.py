@@ -1,5 +1,5 @@
 import pytorch_lightning as pl
-from models import RNN_VAE, RNN, RNN_CNN
+from models import RNN_VAE, RNN, RNN_CNN, RNN_VAE_1
 def inference():
     model = RNN('small_flickr')
     trainer = pl.Trainer(accelerator='auto')
