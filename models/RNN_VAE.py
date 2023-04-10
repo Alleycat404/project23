@@ -28,7 +28,7 @@ class RNN_VAE(pl.LightningModule):
         self.batchsize = batchsize
 
         self.mse_loss = nn.MSELoss()
-        self.KL_loss = nn.KLDivLoss(reduction='batchmean')
+        # self.KL_loss = nn.KLDivLoss(reduction='batchmean')
         # self.bpp_loss_fn = torch.log(likelihoods).sum() / (-math.log(2) * num_pixels)
 
         self.input_dim = input_dim
@@ -181,9 +181,9 @@ class RNN_VAE(pl.LightningModule):
         return x_hat
 
     def training_step(self, batch, idx):
-        pred, _, _ = self.forward(batch)
-        # print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))))
-        loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
+        pred, mu, log_var = self.forward(batch)
+        print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())))
+        loss = self.mse_loss(pred, batch) + self.L * -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
         self.c_in = self.c_in.detach()
         self.h_in = self.h_in.detach()
         self.c_out = self.c_out.detach()
@@ -193,8 +193,8 @@ class RNN_VAE(pl.LightningModule):
 
     def validation_step(self, batch, idx):
         with torch.no_grad():
-            pred, _, _ = self.forward(batch)
-            loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
+            pred, log_var, mu = self.forward(batch)
+            loss = self.mse_loss(pred, batch) + self.L * -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
         return {"val_loss": loss}
 
@@ -242,7 +242,7 @@ class RNN_VAE(pl.LightningModule):
             # cv2.waitKey(0)
             cv2.imwrite(os.path.join(sav_pth, str(k)+'.jpg'), con_img)
 
-        loss = self.mse_loss(pred, batch) + self.L * self.KL_loss(F.log_softmax(pred, dim=1), F.softmax(batch, dim=1))
+        loss = self.mse_loss(pred, batch) + self.L * -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
         return pred, loss
 
     def configure_optimizers(self):
