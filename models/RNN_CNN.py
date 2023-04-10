@@ -165,7 +165,7 @@ class RNN_CNN(pl.LightningModule):
     def test_step(self, batch, idx):
         with torch.no_grad():
             losses = []
-            pred, _, _ = self.forward(batch)
+            pred = self.forward(batch)
             for i in range(pred.shape[0]):
                 loss = structural_similarity(
                     pred[i].mul(255).add_(0.5).clamp_(0, 255).permute(1, 2, 0).to('cpu', torch.uint8).numpy(),

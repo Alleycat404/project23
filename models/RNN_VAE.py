@@ -182,7 +182,7 @@ class RNN_VAE(pl.LightningModule):
 
     def training_step(self, batch, idx):
         pred, mu, log_var = self.forward(batch)
-        print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())))
+        # print('mse | KL : {} | {}'.format(self.mse_loss(pred, batch), -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())))
         loss = self.mse_loss(pred, batch) + self.L * -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
         self.c_in = self.c_in.detach()
         self.h_in = self.h_in.detach()

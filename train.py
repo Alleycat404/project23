@@ -8,7 +8,7 @@ from Flickr import Flickr
 
 # from prog_bar import GlobalProgressBar
 
-root = "small_flickr"
+root = "flickr"
 img_size = 64
 
 model = RNN_VAE(root, img_size=img_size, L=0.1)

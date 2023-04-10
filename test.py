@@ -12,13 +12,13 @@ def inference():
     trainer.predict(model, ckpt_path='ckpt/R-D/L=0.5_epoch=27-step=40656.ckpt')
 
 def te(ckpt: str):
-    model = RNN_VAE_1('small_flickr')
+    model = RNN_VAE('small_flickr')
     trainer = pl.Trainer(accelerator='auto')
     trainer.test(model, ckpt_path=ckpt)
 
 
 if __name__ == '__main__':
-    models = glob('ckpt/R-D/L=0.01_epoch=39-step=58080-v1.ckpt')
+    models = glob('ckpt/RNN_VAE/L=1_epoch=49-step=3100.ckpt')
     for model in models:
         te(model)
 
