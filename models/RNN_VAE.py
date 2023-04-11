@@ -8,7 +8,7 @@ from torch import nn
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from Flickr import Flickr
 from module import ConvLSTMCell
 from module import GDN
@@ -246,7 +246,16 @@ class RNN_VAE(pl.LightningModule):
         return pred, loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0001)
+        # return torch.optim.Adam(self.parameters(), lr=0.0001)
+        optimizer = torch.optim.Adam(self.parameters())
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': {
+                'scheduler': ReduceLROnPlateau(optimizer, 'min'),
+                'monitor': 'val_loss',
+                'frequency': 2
+            }
+        }
 
 
 if __name__ == '__main__':
