@@ -125,11 +125,6 @@ class RNN_VAE_1(pl.LightningModule):
         return predict_dataloader
 
     def forward(self, x):
-        """
-        向前传播部分, 在model_name(inputs)时自动调用
-        :param x: the input of our training module [b, batch_size, 1, 28, 28]
-        :return: the result of our training module
-        """
         batch_size = x.shape[0]  # 每一批含有的样本的个数
 
         x = self.gdn1(self.conv1(x))  # (1, 3, 64, 64) -> (1, 64, 32, 32)
