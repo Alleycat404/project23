@@ -1,3 +1,4 @@
+import os
 from glob import glob
 
 import pytorch_lightning as pl
@@ -18,8 +19,9 @@ def te(ckpt: str):
 
 
 if __name__ == '__main__':
-    models = glob('ckpt/RNN_VAE/L=1_epoch=49-step=3100.ckpt')
+    models = glob('ckpt/RNN_VAE/*.ckpt')
     for model in models:
+        print(os.path.split(model)[1])
         te(model)
 
 
