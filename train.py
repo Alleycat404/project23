@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from models import RNN_VAE, RNN, RNN_CNN, RNN_VAE_1
+from models import RNN_VAE, RNN, RNN_CNN, RNN_VAE_1, RNN_VAE_0
 from Flickr import Flickr
 
 # from prog_bar import GlobalProgressBar
@@ -11,7 +11,7 @@ from Flickr import Flickr
 root = "flickr"
 img_size = 64
 
-model = RNN_VAE(root, img_size=img_size, L=1e-10)
+model = RNN_VAE_0(root, img_size=img_size, L=1e-10)
 
 checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath="ckpt", monitor="val_loss")
 callbacks = [checkpoint_callback]
