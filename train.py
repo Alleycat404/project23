@@ -8,7 +8,7 @@ from Flickr import Flickr
 
 # from prog_bar import GlobalProgressBar
 
-root = "small_flickr"
+root = "flickr"
 img_size = 64
 
 model = RNN_VAE(root, img_size=img_size, L=0.1)
@@ -19,6 +19,6 @@ callbacks = [checkpoint_callback]
 trainer = pl.Trainer(callbacks=callbacks, enable_progress_bar=True, fast_dev_run=False,
                      max_epochs=100, accelerator='auto', check_val_every_n_epoch=2, auto_lr_find=True)
 
-trainer.fit(model)
+trainer.fit(model.train())
 
 # print(checkpoint_callback.best_model_path)
