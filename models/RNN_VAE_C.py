@@ -16,11 +16,11 @@ from torch.autograd import Variable
 import pytorch_lightning as pl
 from skimage.metrics import structural_similarity
 
-class RNN_VAE(pl.LightningModule):
+class RNN_VAE_C(pl.LightningModule):
 
     def __init__(self, root='E:/datasets/small_flickr', input_dim=512, h_dim=400, z_dim=20, batchsize=16, img_size=64, L=0.01):
         # 调用父类方法初始化模块的state
-        super(RNN_VAE, self).__init__()
+        super(RNN_VAE_C, self).__init__()
 
         self.L = L
         self.root = root
@@ -258,5 +258,5 @@ if __name__ == '__main__':
     root = "E:/datasets/flickr"
 
     x = torch.rand(16, 3, 64, 64)
-    out = RNN_VAE(root).training_step(x, 1)
+    out = RNN_VAE_C(root).training_step(x, 1)
     print(out['loss'])
