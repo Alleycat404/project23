@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 
-from models import RNN_VAE, RNN, RNN_CNN, RNN_VAE_1, RNN_VAE_0
+from models import RNN_VAE, RNN, RNN_CNN, RNN_VAE_1, RNN_VAE_0, RNN_VAE_C
 from Flickr import Flickr
 
 # from prog_bar import GlobalProgressBar
